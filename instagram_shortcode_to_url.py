@@ -4,12 +4,7 @@ import sys
 import os
 import argparse
 
-# Import directly from Instaloader
-try:
-    import instaloader
-except ImportError:
-    print("Error: Instaloader not installed. Please install it with: pip install instaloader")
-    sys.exit(1)
+import instaloader
 
 def get_video_url(shortcode):
     """Get direct video URL from Instagram reel/post shortcode using Instaloader"""
