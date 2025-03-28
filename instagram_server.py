@@ -2,10 +2,21 @@
 
 import re
 import json
+import os
+import signal
+import sys
 from flask import Flask, request, jsonify
 import instagram_shortcode_to_url
 
 app = Flask(__name__)
+
+# Signal handler for graceful shutdown
+def signal_handler(sig, frame):
+    print('Shutting down gracefully...')
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 def extract_shortcode(instagram_url):
     """Extract shortcode from an Instagram URL"""
@@ -20,6 +31,11 @@ def extract_shortcode(instagram_url):
         return match.group(1)
     else:
         raise ValueError(f"Could not extract shortcode from URL: {instagram_url}")
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint for monitoring"""
+    return jsonify({"status": "ok"}), 200
 
 @app.route('/get_video_url', methods=['GET'])
 def get_instagram_video_url():
@@ -106,4 +122,9 @@ def batch_instagram_video_urls():
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True) 
+    # Get port from environment variable or use default
+    port = int(os.environ.get('PORT', 5000))
+    
+    # In production, don't use debug mode and bind to all interfaces
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    app.run(host='0.0.0.0', port=port, debug=debug_mode) 
